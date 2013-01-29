@@ -17,7 +17,7 @@
 
 /*==========================================
 (c) 2013 Woodward Academy Robotics under GPLv3
-==========================================*
+==========================================*/
 
 #pragma platform(VEX)
 #pragma competitionControl(Competition)
