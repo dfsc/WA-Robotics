@@ -90,20 +90,20 @@ void Aarm(int positionR, char direction, char power)
 	if(direction == RAISE)
 	{
 		//if direction is to raise the arm
-		while (SensorValue[rightPot] > positionR)// arm up for high goal
+		while (SensorValue[armPot2] > positionR)// arm up for high goal
 		{
 			// while both potentiometers are less than a set position power both arms
-  motor[leftTopArm] = power;
-	motor[leftBottomArm] = power;
-	motor[rightTopArm] = power;
-	motor[rightBottomArm] = power;
+ 			motor[leftTopArm] = power;
+			motor[leftBottomArm] = power;
+			motor[rightTopArm] = power;
+			motor[rightBottomArm] = power;
 		}
 	}
 	//End of RAISE
 
 	else //LOWER
 	{
-		while(SensorValue[rightPot] < positionR)// arm down
+		while(SensorValue[armPot2] < positionR)// arm down
 		{   // while both potentiometers are more than a set position power both arms negatively.
 
 	motor[leftTopArm] = power;
