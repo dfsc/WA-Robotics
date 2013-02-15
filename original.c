@@ -190,8 +190,10 @@ task leftRightOne(){
 	//forward to the line that the bonus sack is on999/8
 	//turn(550,LEFT,40);
 	//swivel turn to pick up yellow sack
+	driveTime(200,FORWARD,100);
+	driveTime(200,BACKWARD,100);
 	drive(.5 * clickspermeters, FORWARD, 100);
-	wait1Msec(600);
+	wait1Msec(100);
 	drive(.5 * clickspermeters, FORWARD, 100);
 	//forward to yellow sack
 	//turn to trough
@@ -578,7 +580,7 @@ void pre_auton(){
 
 task autonomous(){ //autonomous selection AUTOSELECT
 //switchup
- 	autonomousRight();
+ 	autonomousLeft();
  	if (auton = false){
  		autonomousRight()		//put first play here
  		while(nLCDButtons == 0){}
