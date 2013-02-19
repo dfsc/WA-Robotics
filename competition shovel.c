@@ -494,7 +494,7 @@ void autonFiveLeft(){ //autonFiveLEft grabs the five stack, starts on left tile.
   wrist(-127, 1100);
   //AArm(300 , LOWER, 60);
 	wait1Msec(400);
-  drive( .7 * clickspermeters, FORWARD, 80);
+  drive( .69 * clickspermeters, FORWARD, 80);
   StartTask(five);
   wrist(127, 750);
   wait1Msec(950);
@@ -502,12 +502,12 @@ void autonFiveLeft(){ //autonFiveLEft grabs the five stack, starts on left tile.
   wrist(10, 20);
   driveBackward(100, 300);
   aArm(2100, RAISE, 120);
-  wrist(127, 200);
+  wrist(127, 300);
   SensorValue[rightIEM]=0;
 	SensorValue[leftIEM]=0;
   strafeLeft(100, clickspermeters);
   turnLeft(60, 600);
-  drive( .37 * clickspermeters, FORWARD, 70);
+  drive( .35 * clickspermeters, FORWARD, 70);
   wait1Msec(20);
   while(SensorValue[WristPot1] > 200){
   motor[leftWrist] = -127;
@@ -533,7 +533,7 @@ void autonYellow(){ //autonFiveLEft grabs the five stack, starts on left tile.
   wrist(10, 20);
   driveBackward(70, 900);
   aArm(1500, RAISE, 120);
-  wrist(-127, 200);
+  wrist(127, 200);
   drive(.27 * clickspermeters, FORWARD, 70);
  while(SensorValue[WristPot2] > 1900){
   motor[leftWrist] = -127;
@@ -554,15 +554,15 @@ void autonYellow(){ //autonFiveLEft grabs the five stack, starts on left tile.
 	wait1Msec(400);
   drive( .6 * clickspermeters, FORWARD, 80);
   wait1Msec(20);
-  driveBackward(100, 100);
   StartTask(five);
-  wrist(127, 600);
-  wait1Msec(900);
-  wrist(10, 20);
-  aArm(1500, RAISE, 120);
+  wrist(127, 850);
+  wait1Msec(1050);
+  driveBackward(100, 100);
+  aArm(2100, RAISE, 120);
+  wrist(127, 200);
   drive( .4 * clickspermeters, FORWARD, 70);
   wait1Msec(20);
-  while(SensorValue[WristPot2] > 1900){
+   while(SensorValue[WristPot1] > 200){
   motor[leftWrist] = -127;
   motor[rightWrist] = -127;
   }
@@ -640,7 +640,7 @@ void pre_auton()
 
 task autonomous()
 {
-autonFiveLeft();
+autonFiveRight();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
