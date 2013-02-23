@@ -497,12 +497,12 @@ void autonFiveLeft(){ //autonFiveLEft grabs the five stack, starts on left tile.
   drive( .69 * clickspermeters, FORWARD, 80);
   StartTask(five);
   wrist(127, 750);
-  wait1Msec(950);
+  wait1Msec(850);
   driveBackward(100, 300);
   wrist(10, 20);
   driveBackward(100, 300);
   aArm(2100, RAISE, 120);
-  wrist(127, 300);
+  wrist(127, 250);
   SensorValue[rightIEM]=0;
 	SensorValue[leftIEM]=0;
   strafeLeft(100, clickspermeters);
