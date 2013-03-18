@@ -1,5 +1,6 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    ArmPot1,        sensorPotentiometer)
+#pragma config(Sensor, in2,    ArmPot2,        sensorPotentiometer)
 #pragma config(Sensor, in3,    WristPot1,      sensorPotentiometer)
 #pragma config(Sensor, in4,    WristPot2,      sensorPotentiometer)
 #pragma config(Sensor, I2C_3,  rightIEM,       sensorQuadEncoderOnI2CPort,    , AutoAssign)
@@ -35,6 +36,7 @@ int LCDselect = 0;
 bool autonL = false;
 bool autonR = false;
 int easyHard = 0;
+int toggle = 0;
 // Autonomous codes
 #define FORWARD 1
 #define BACKWARD 0
@@ -56,14 +58,6 @@ void timeConvert(int time){
 }
 #define RAISE 1
 #define LOWER 0
-void arm(int power, int time){
-	timeConvert(time);
-	motor[leftTopArm] = power;
-	motor[leftBottomArm] = power;
-	motor[rightTopArm] = power;
-	motor[rightBottomArm] = power;
-	wait1Msec(timeMS);
-}
 void waitForRelease(){
 	while(nLCDButtons != 0){}
 	wait1Msec(5);
@@ -105,7 +99,7 @@ void autonomousSelection(){
 
 		while(auton1 == true  && nSysTime < 15000){
 			//when autonomous is selected
-			displayLCDCenteredString(0, "Five sack or Y?");
+			displayLCDCenteredString(0, "Five sack or D?");
 			//Left or right Autonomous?
 			if(nLCDButtons == leftButton){
 				waitForRelease();
@@ -151,17 +145,67 @@ void autonomousSelection(){
 
 
 
-void wrist(int power, int time){
-	motor[rightWrist]  = power;
-	motor[leftWrist] = power;
-	wait1Msec(time);
+void wrist(int positionR,char direction ,char power){
 
-	motor[rightWrist]  = 0;
-	motor[leftWrist] = 0;
-	wait1Msec(20);
+	//This function is for arm raising
+	if(direction == RAISE)
+	{
+		//if direction is to raise the arm
+while (SensorValue[WristPot1] < positionR)// arm up for high goal
+		{
+			// while both potentiometers are less than a set position power both arms
+	  motor[leftWrist] = power;
+		motor[rightWrist] = power;
+		}
 
+	}
+	//End of RAISE
+else if(direction == LOWER) //LOWER
+	{
+  while (SensorValue[WristPot1] > positionR) {// arm down
+	// while both potentiometers are more than a set position power both arms negatively.
+	motor[leftWrist] = -power;
+  motor[rightWrist] = -power;
+ 	}
+ 	wait1Msec(20);
+		}
+
+    motor[leftWrist] = 0;
+		motor[rightWrist] = 0;
+		wait1Msec(20);
+	//stop arm
 }
 
+void wrist1(int positionR,char direction ,char power){
+
+	//This function is for arm raising
+	if(direction == RAISE)
+	{
+		//if direction is to raise the arm
+while (SensorValue[WristPot2] < positionR)// arm up for high goal
+		{
+			// while both potentiometers are less than a set position power both arms
+	  motor[leftWrist] = power;
+		motor[rightWrist] = power;
+		}
+
+	}
+	//End of RAISE
+else if(direction == LOWER) //LOWER
+	{
+  while (SensorValue[WristPot2] > positionR) {// arm down
+	// while both potentiometers are more than a set position power both arms negatively.
+	motor[leftWrist] = -power;
+  motor[rightWrist] = -power;
+ 	}
+ 	wait1Msec(20);
+		}
+
+    motor[leftWrist] = 0;
+		motor[rightWrist] = 0;
+		wait1Msec(20);
+	//stop arm
+}
 
 
 void drive(int distance, char direction, int power){
@@ -241,10 +285,10 @@ void turnLeft(int power, int time){
 
 void turnRight(int power, int time){
 	timeConvert(time);
-	motor[rightFrontMotor] = -power;
+	motor[rightFrontMotor] = power;
 	motor[rightBackMotor] = power;
 	motor[leftFrontMotor] = power;
-	motor[leftBackMotor] = -power;
+	motor[leftBackMotor] = power;
 	wait1Msec(timeMS);
 }
 void aArm(int positionR, char direction, char power)
@@ -257,18 +301,13 @@ void aArm(int positionR, char direction, char power)
 		while (SensorValue[ArmPot1] > positionR)// arm up for high goal
 		{
 			// while both potentiometers are less than a set position power both arms
-
-  motor[rightFrontMotor] = vexRT[Ch3] - vexRT[Ch2] + vexRT[Ch1];
-    motor[rightBackMotor] =  vexRT[Ch3] - vexRT[Ch2] - vexRT[Ch1];
-    motor[leftFrontMotor] = vexRT[Ch3] + vexRT[Ch2] + vexRT[Ch1];
-    motor[leftBackMotor] =  vexRT[Ch3] + vexRT[Ch2] - vexRT[Ch1];
-			motor[leftWrist] = -30;
+	  motor[leftWrist] = -30;
 		motor[rightWrist] = -30;
 
-  motor[leftTopArm] = power;
-	motor[leftBottomArm] = power;
-	motor[rightTopArm] = power;
-	motor[rightBottomArm] = power;
+    motor[leftTopArm] = power;
+	  motor[leftBottomArm] = power;
+  	motor[rightTopArm] = power;
+  	motor[rightBottomArm] = power;
 		}
 		isrunning = false;
 	}
@@ -283,37 +322,38 @@ void aArm(int positionR, char direction, char power)
 	motor[leftBottomArm] = -power;
 	motor[rightTopArm] = -power;
 	motor[rightBottomArm] = -power;
-	  motor[leftWrist] = -30;
-		motor[rightWrist] = -30;
-     motor[rightFrontMotor] = vexRT[Ch3] - vexRT[Ch2] + vexRT[Ch1];
-    motor[rightBackMotor] =  vexRT[Ch3] - vexRT[Ch2] - vexRT[Ch1];
-    motor[leftFrontMotor] = vexRT[Ch3] + vexRT[Ch2] + vexRT[Ch1];
-    motor[leftBackMotor] =  vexRT[Ch3] + vexRT[Ch2] - vexRT[Ch1];
+	motor[leftWrist] = -30;
+  motor[rightWrist] = -30;
  	}
  		isrunning = false;
 		}
-   motor[leftWrist] = 0;
+
+		motor[leftTopArm] = 0;
+	  motor[leftBottomArm] = 0;
+	  motor[rightTopArm] = 0;
+	  motor[rightBottomArm] = 0;
+    motor[leftWrist] = 0;
 		motor[rightWrist] = 0;
 		wait1Msec(20);
 	//stop arm
 }
-void AutoArm(int positionR, char direction, char power)
+void aArm1(int positionR, char direction, char power)
 {
 
 	//This function is for arm raising
 	if(direction == RAISE)
 	{
 		//if direction is to raise the arm
-		while (SensorValue[ArmPot1] < positionR)// arm up for high goal
+		while (SensorValue[ArmPot2] > positionR)// arm up for high goal
 		{
 			// while both potentiometers are less than a set position power both arms
-	motor[leftTopArm] = power;
-	motor[leftBottomArm] = power;
-	motor[rightTopArm] = power;
-	motor[rightBottomArm] = power;
-			motor[leftWrist] = -40;
-		motor[rightWrist] = -40;
+	  motor[leftWrist] = -30;
+		motor[rightWrist] = -30;
 
+    motor[leftTopArm] = power;
+	  motor[leftBottomArm] = power;
+  	motor[rightTopArm] = power;
+  	motor[rightBottomArm] = power;
 		}
 		isrunning = false;
 	}
@@ -321,29 +361,41 @@ void AutoArm(int positionR, char direction, char power)
 
 	else if(direction == LOWER) //LOWER
 	{
- while (SensorValue[ArmPot1] > positionR) {// arm down
+ while (SensorValue[ArmPot2] < positionR) {// arm down
 	// while both potentiometers are more than a set position power both arms negatively.
 
 	motor[leftTopArm] = -power;
 	motor[leftBottomArm] = -power;
 	motor[rightTopArm] = -power;
 	motor[rightBottomArm] = -power;
-	  motor[leftWrist] = -30;
-		motor[rightWrist] = -30;
-
+	motor[leftWrist] = -30;
+  motor[rightWrist] = -30;
  	}
  		isrunning = false;
 		}
 
+		motor[leftTopArm] = 0;
+	  motor[leftBottomArm] = 0;
+	  motor[rightTopArm] = 0;
+	  motor[rightBottomArm] = 0;
+    motor[leftWrist] = 0;
+		motor[rightWrist] = 0;
+		wait1Msec(20);
 	//stop arm
 }
 void strafeLeft(int power, int distance){
- while(abs(SensorValue[leftIEM]) < distance){
+
+while(abs(SensorValue[leftIEM]) < distance){
 	motor[rightFrontMotor] = -power;
 	motor[rightBackMotor] = power;
 	motor[leftFrontMotor] = -power;
 	motor[leftBackMotor]  = power;
 }
+	motor[rightFrontMotor] = 0;
+	motor[rightBackMotor] = 0;
+	motor[leftFrontMotor] = 0;
+	motor[leftBackMotor]  = 0;
+	wait1Msec(20);
 }
 
 void strafeRight(int power, int distance){
@@ -355,6 +407,57 @@ void strafeRight(int power, int distance){
 	motor[leftFrontMotor] = power;
 	motor[leftBackMotor]  = -power;
 }
+	motor[rightFrontMotor] = 0;
+	motor[rightBackMotor] = 0;
+	motor[leftFrontMotor] = 0;
+	motor[leftBackMotor]  = 0;
+	wait1Msec(20);
+}
+void heavyload(int positionR, char direction, char power)
+{
+
+	//This function is for arm raising
+	if(direction == RAISE)
+	{
+		//if direction is to raise the arm
+		while (SensorValue[ArmPot1] > positionR)// arm up for high goal
+		{
+			// while both potentiometers are less than a set position power both arms
+	  motor[leftWrist] = -5;
+		motor[rightWrist] = -5;
+
+    motor[leftTopArm] = power;
+	  motor[leftBottomArm] = power;
+  	motor[rightTopArm] = power;
+  	motor[rightBottomArm] = power;
+		}
+		isrunning = false;
+	}
+	//End of RAISE
+
+	else if(direction == LOWER) //LOWER
+	{
+ while (SensorValue[ArmPot1] < positionR) {// arm down
+	// while both potentiometers are more than a set position power both arms negatively.
+
+	motor[leftTopArm] = -power;
+	motor[leftBottomArm] = -power;
+	motor[rightTopArm] = -power;
+	motor[rightBottomArm] = -power;
+	motor[leftWrist] = -5;
+  motor[rightWrist] = -5;
+ 	}
+ 		isrunning = false;
+		}
+
+		motor[leftTopArm] = 0;
+	  motor[leftBottomArm] = 0;
+	  motor[rightTopArm] = 0;
+	  motor[rightBottomArm] = 0;
+    motor[leftWrist] = 0;
+		motor[rightWrist] = 0;
+		wait1Msec(20);
+	//stop arm
 }
 
 // driver control code
@@ -369,7 +472,7 @@ void driverControl(){
 
 // Wrist and arm code
 void armUserControl(){
-		if(vexRT[Btn6U] == 1 && SensorValue[ArmPot1] > 1850)
+		if(vexRT[Btn6U] == 1 && SensorValue[ArmPot1] > 1490 && toggle == 0 )
 		// If 6U is pressed, arm goes up
 	{
 		motor[leftBottomArm] = 127;
@@ -378,13 +481,30 @@ void armUserControl(){
 		motor[rightTopArm] = 127;
 	}
 
-	else if(vexRT[Btn6D] == 1)
+	else if(vexRT[Btn6D] == 1 && toggle == 0)
 		// If 6D is pressed, arm goes down
 	{
   	motor[leftBottomArm] = -127;
 		motor[leftTopArm] = -127;
 		motor[rightBottomArm] = -127;
 		motor[rightTopArm] = -127;
+	}
+	else		if(vexRT[Btn6U] == 1 && SensorValue[ArmPot1] > 1490 && toggle == 1)
+		// If 6U is pressed, arm goes up
+	{
+		motor[leftBottomArm] = 50;
+		motor[leftTopArm] = 50;
+		motor[rightBottomArm] = 50;
+		motor[rightTopArm] = 50;
+	}
+
+	else if(vexRT[Btn6D] == 1 && toggle == 1)
+		// If 6D is pressed, arm goes down
+	{
+  	motor[leftBottomArm] = -50;
+		motor[leftTopArm] = -50;
+		motor[rightBottomArm] = -50;
+		motor[rightTopArm] = -50;
 	}
 	else
 		// otherwise, do nothing
@@ -394,37 +514,39 @@ void armUserControl(){
 		motor[rightBottomArm] = 0;
 		motor[rightTopArm] = 0;
 	}
-
-
-if(vexRT[Btn8D] == 1)
-		// If 6U is pressed, arm goes up
-	{
-    isrunning = true;
-		aArm(MinPot, LOWER, 120);
+	if(vexRT(Btn8U) == 1){
+		//If 8U is pressed, bring arm to maximum height
+		heavyload(1800, RAISE, 127)
 	}
-	else if(vexRT[Btn8U] == 1){
-		isrunning = true;
-		aArm(MaxPot, RAISE, 120);
-}
 }
 void wristUserControl(){
-	if(vexRT[Btn5U] == 1 && SensorValue[ArmPot1] > 3400 && SensorValue[WristPot1] < 3450)//wrist stop
+	if(vexRT[Btn5U] == 1 && SensorValue[ArmPot1] > 3400 && SensorValue[WristPot1] < 3450  && toggle == 0)//wrist stop
 		// If 6U is pressed, arm goes up
   {
   	motor[leftWrist] = 127;
 		motor[rightWrist] = 127;
 	}
-	else if(vexRT[Btn5U] == 1 && SensorValue[ArmPot1] < 3400){
+	else if(vexRT[Btn5U] == 1 && SensorValue[ArmPot1] < 3400  && toggle == 0){
 
 		motor[leftWrist] = 127;
 		motor[rightWrist] = 127;
 
 	}
-	else if(vexRT[Btn5D] == 1)
+	else if(vexRT[Btn5D] == 1 && toggle == 0)
 		// If 6D is pressed, arm goes down
 	{
-			motor[leftWrist] = -127;
+		motor[leftWrist] = -127;
 		motor[rightWrist] = -127;
+	}
+	else if(vexRT[Btn5U] == 1 && toggle == 1){
+		motor[leftWrist] = 25;
+		motor[rightWrist] = 25;
+
+	}
+		else if(vexRT[Btn5D] == 1 && toggle == 1){
+			motor[leftWrist] = -25;
+		motor[rightWrist] = -25;
+
 	}
 	else
 		// otherwise, do nothing
@@ -435,7 +557,7 @@ void wristUserControl(){
 }
 
 void position(){
-if (vexRT[Btn6U] == 0 && vexRT[Btn6D] == 0 && SensorValue[ArmPot1] < 3400&& SensorValue[ArmPot1] > 1850 && vexRT[Btn8U] == 0 && vexRT[Btn8D] == 0){
+if (vexRT[Btn6U] == 0 && vexRT[Btn6D] == 0 && SensorValue[ArmPot1] < 2900&& SensorValue[ArmPot1] > 1500 && vexRT[Btn8U] == 0 && vexRT[Btn8D] == 0){
 	  motor[rightTopArm] = 15;
 		motor[rightBottomArm] = 15;
 		motor[leftTopArm] = 15;
@@ -486,85 +608,409 @@ task five(){
 		StartTask(four);
     }
 }
+task quick(){
+  strafeRight(127, .3 * clickspermeters);
+  drive( .1 * clickspermeters, FORWARD, 70);
+  wait1Msec(20);
+}
+task quick1(){
+  wrist(2200, LOWER ,127);
+  wait1Msec(100);
+  wrist1(2050,LOWER,127);
+	wait1Msec(400);
+
+}
+
 // autonomous plays are named as follows auton[Score-Result][starting tile]
 void autonFiveLeft(){ //autonFiveLEft grabs the five stack, starts on left tile.
+	SensorValue[rightIEM]=0;
+	SensorValue[leftIEM]=0;
+	StartTask(quick1);
+  StartTask(quick);
+  wait1Msec(1500);
+  drive( .67 * clickspermeters, FORWARD, 80);
+  StartTask(five);
+  wrist(2900, RAISE ,127);
+  wait1Msec(650);
+  driveBackward(100, 450);
+  aArm(2050, RAISE, 127);
+  wait1Msec(50);
+  aArm1(600,RAISE,127);
+	wait1Msec(400);
+	SensorValue[rightIEM]=0;
+	SensorValue[leftIEM]=0;
+  strafeLeft(100, clickspermeters);
+  turnLeft(60, 600);
+  drive( .41 * clickspermeters, FORWARD, 70);
+  wait1Msec(20);
+  wrist(200,LOWER,127);
+ driveBackward(100, 300);
+  wait1Msec(500);
+
+  }
+void autonSkills(){ //autonFiveLEft grabs the five stack, starts on left tile.
 	SensorValue[rightIEM]=0;
 	SensorValue[leftIEM]=0;
 	strafeRight(127, .3 * clickspermeters);
   drive( .1 * clickspermeters, FORWARD, 70);
   wait1Msec(20);
-  wrist(-127, 1100);
-  //AArm(300 , LOWER, 60);
+  wrist(2200, LOWER ,127);
+  wait1Msec(20);
+  wrist(2200, LOWER ,127);
 	wait1Msec(400);
-  drive( .69 * clickspermeters, FORWARD, 80);
+  drive( .67 * clickspermeters, FORWARD, 80);
   StartTask(five);
-  wrist(127, 750);
-  wait1Msec(850);
-  driveBackward(100, 300);
-  wrist(10, 20);
-  driveBackward(100, 300);
-  aArm(2100, RAISE, 120);
-  wrist(127, 250);
-  SensorValue[rightIEM]=0;
+  wrist(2850, RAISE ,127);
+  wait1Msec(650);
+  driveBackward(100, 450);
+  aArm(2100, RAISE, 127);
+	SensorValue[rightIEM]=0;
 	SensorValue[leftIEM]=0;
   strafeLeft(100, clickspermeters);
   turnLeft(60, 600);
-  drive( .35 * clickspermeters, FORWARD, 70);
+  drive( .39 * clickspermeters, FORWARD, 70);
   wait1Msec(20);
+  wrist(200,LOWER,127);
+  driveBackward(100, 300);
+  driveBackward(100, 400);
+  wait1Msec(500);
+  driveBackward(0, 20);
+  wait1Msec(20);
+  while(SensorValue[WristPot1] < 2200){
+  motor[leftWrist] = 127;
+  motor[rightWrist] = 127;
+  }
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  wait1Msec(20);
+  while(SensorValue[ArmPot1] < 3900){
+  motor[leftTopArm] = -127;
+	motor[leftBottomArm] = -127;
+	motor[rightTopArm] = -127;
+	motor[rightBottomArm] = -127;
+  }
+   wait1Msec(20);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+  wait1Msec(20);
+
+  while(SensorValue[WristPot1] > 2200){
+  motor[leftWrist] = -127;
+  motor[rightWrist] = -127;
+  }
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  wait1Msec(20);
+  turnLeft(60, 100);
+   wait1Msec(20);
+  drive( .37 * clickspermeters, FORWARD, 70);
+   wait1Msec(20);
+  while(SensorValue[WristPot1] <2800){
+  motor[leftWrist] = 127;
+  motor[rightWrist] = 127;
+  }
+  wait1Msec(100);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  driveBackward(100, 650);
+  wait1Msec(100);
+  while(SensorValue[ArmPot1] > 2100){
+  motor[leftTopArm] = 127;
+	motor[leftBottomArm] = 127;
+	motor[rightTopArm] = 127;
+	motor[rightBottomArm] = 127;
+	motor[rightWrist] = -35;
+	motor[leftWrist] = -35;
+  }
+  driveBackward(0, 20);
+  wait1Msec(50);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+	while(SensorValue[ArmPot1] > 2100){
+  motor[leftTopArm] = 127;
+	motor[leftBottomArm] = 127;
+	motor[rightTopArm] = 127;
+	motor[rightBottomArm] = 127;
+	motor[rightWrist] = -27;
+	motor[leftWrist] = -27;
+  }
+  driveBackward(0, 20);
+  wait1Msec(50);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+	wait1Msec(20);
+	SensorValue[rightIEM]=0;
+	SensorValue[leftIEM]=0;
+	drive( .37 * clickspermeters, FORWARD, 70);
+	wait1Msec(2000);
+  while(SensorValue[WristPot1] > 200){
+  motor[leftWrist] = -127;
+  motor[rightWrist] = -127;
+  }
+  wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+	driveBackward(100, 850);
+  wait1Msec(500);
+  driveBackward(0, 20);
+  wait1Msec(20);
+  while(SensorValue[WristPot1] < 2200){
+  motor[leftWrist] = 127;
+  motor[rightWrist] = 127;
+  }
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  wait1Msec(20);
+  while(SensorValue[ArmPot1] < 3900){
+  motor[leftTopArm] = -127;
+	motor[leftBottomArm] = -127;
+	motor[rightTopArm] = -127;
+	motor[rightBottomArm] = -127;
+  }
+   wait1Msec(20);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+  wait1Msec(20);
+  while(SensorValue[WristPot1] > 2200){
+  motor[leftWrist] = -127;
+  motor[rightWrist] = -127;
+  }
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  wait1Msec(20);
+  strafeRight(127, .9 * clickspermeters);
+  turnRight(100, 200);
+   while(SensorValue[ArmPot1] < 3900){
+  motor[leftTopArm] = -127;
+	motor[leftBottomArm] = -127;
+	motor[rightTopArm] = -127;
+	motor[rightBottomArm] = -127;
+  }
+   wait1Msec(20);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+  wait1Msec(20);
+	 drive( .4 * clickspermeters, FORWARD, 70);
+   wait1Msec(20);
+  while(SensorValue[WristPot1] <2700){
+  motor[leftWrist] = 127;
+  motor[rightWrist] = 127;
+  }
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  driveBackward(100, 650);
+  wait1Msec(300);
+  while(SensorValue[ArmPot1] > 2100){
+  motor[leftTopArm] = 127;
+	motor[leftBottomArm] = 127;
+	motor[rightTopArm] = 127;
+	motor[rightBottomArm] = 127;
+	motor[rightWrist] = -27;
+	motor[leftWrist] = -27;
+  }
+  driveBackward(0, 20);
+  wait1Msec(50);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+	while(SensorValue[ArmPot1] > 2100){
+  motor[leftTopArm] = 127;
+	motor[leftBottomArm] = 127;
+	motor[rightTopArm] = 127;
+	motor[rightBottomArm] = 127;
+	motor[rightWrist] = -27;
+	motor[leftWrist] = -27;
+  }
+  driveBackward(0, 20);
+  wait1Msec(50);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+	wait1Msec(20);
+	SensorValue[rightIEM]=0;
+	SensorValue[leftIEM]=0;
+	drive( .37 * clickspermeters, FORWARD, 70);
+	wait1Msec(20);
   while(SensorValue[WristPot1] > 200){
   motor[leftWrist] = -127;
   motor[rightWrist] = -127;
   }
   motor[leftWrist] = 0;
   motor[rightWrist] = 0;
- driveBackward(100, 100);
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+	driveBackward(100, 650);
   wait1Msec(500);
- driveBackward(0, 1000);
+  driveBackward(0, 20);
+  wait1Msec(20);
+  while(SensorValue[WristPot1] < 2200){
+  motor[leftWrist] = 127;
+  motor[rightWrist] = 127;
   }
-void autonYellow(){ //autonFiveLEft grabs the five stack, starts on left tile.
-	SensorValue[rightIEM]=0;
-	SensorValue[leftIEM]=0;
-	strafeLeft(127, .34 * clickspermeters);
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  wait1Msec(20);
+  while(SensorValue[ArmPot1] < 3900){
+  motor[leftTopArm] = -127;
+	motor[leftBottomArm] = -127;
+	motor[rightTopArm] = -127;
+	motor[rightBottomArm] = -127;
+  }
+   wait1Msec(20);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+  wait1Msec(20);
+  while(SensorValue[WristPot1] > 2200){
+  motor[leftWrist] = -127;
+  motor[rightWrist] = -127;
+  }
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  wait1Msec(20);
+  strafeLeft(127, .5 * clickspermeters);
+  driveBackward(127 , 700);
+  wait1Msec(5000);
+   while(SensorValue[ArmPot1] < 3900){
+  motor[leftTopArm] = -127;
+	motor[leftBottomArm] = -127;
+	motor[rightTopArm] = -127;
+	motor[rightBottomArm] = -127;
+  }
+   wait1Msec(20);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+  wait1Msec(20);
+ while(SensorValue[WristPot1] > 2200){
+  motor[leftWrist] = -127;
+  motor[rightWrist] = -127;
+  }
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  wait1Msec(20);
+  drive( .25 * clickspermeters, FORWARD, 70);
+   while(SensorValue[ArmPot1] < 3900){
+  motor[leftTopArm] = -127;
+	motor[leftBottomArm] = -127;
+	motor[rightTopArm] = -127;
+	motor[rightBottomArm] = -127;
+  }
+   wait1Msec(20);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+  wait1Msec(20);
+ while(SensorValue[WristPot1] > 2200){
+  motor[leftWrist] = -127;
+  motor[rightWrist] = -127;
+  }
+   wait1Msec(20);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  wait1Msec(20);
   drive( .7 * clickspermeters, FORWARD, 70);
-  wrist(-127, 1100);
-  wait1Msec(400);
-  drive( .28 * clickspermeters, FORWARD, 80);
-  StartTask(five);
-  wrist(127, 600);
-  wait1Msec(900);
-  wrist(10, 20);
-  driveBackward(70, 900);
-  aArm(1500, RAISE, 120);
-  wrist(127, 200);
-  drive(.27 * clickspermeters, FORWARD, 70);
- while(SensorValue[WristPot2] > 1900){
+  wait1Msec(20)
+ while(SensorValue[WristPot1] <2700){
+  motor[leftWrist] = 127;
+  motor[rightWrist] = 127;
+  }
+  wait1Msec(100);
+  motor[leftWrist] = 0;
+  motor[rightWrist] = 0;
+  driveBackward(100, 900);
+  wait1Msec(10000);
+  while(SensorValue[ArmPot1] > 2100){
+  motor[leftTopArm] = 127;
+	motor[leftBottomArm] = 127;
+	motor[rightTopArm] = 127;
+	motor[rightBottomArm] = 127;
+	motor[rightWrist] = -27;
+	motor[leftWrist] = -27;
+  }
+  driveBackward(0, 20);
+  wait1Msec(50);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+	while(SensorValue[ArmPot1] > 2100){
+  motor[leftTopArm] = 127;
+	motor[leftBottomArm] = 127;
+	motor[rightTopArm] = 127;
+	motor[rightBottomArm] = 127;
+	motor[rightWrist] = -27;
+	motor[leftWrist] = -27;
+  }
+  driveBackward(0, 20);
+  wait1Msec(50);
+  motor[leftTopArm] = 0;
+	motor[leftBottomArm] = 0;
+	motor[rightTopArm] = 0;
+	motor[rightBottomArm] = 0;
+	wait1Msec(20);
+	strafeLeft(127, clickspermeters * .5);
+  drive( 1.15 * clickspermeters, FORWARD, 70);
+ while(SensorValue[WristPot1] > 200){
   motor[leftWrist] = -127;
   motor[rightWrist] = -127;
   }
   motor[leftWrist] = 0;
   motor[rightWrist] = 0;
-  wait1Msec(800);
-  driveBackward(90, 500);
-  }
+  driveBackward(100, 600);
+	}
+
+	void autonBlock(){ //autonFiveLEft grabs the five stack, starts on left tile.
+  SensorValue[rightIEM]=0;
+	SensorValue[leftIEM]=0;
+  //wrist(-127, 1100);
+  drive( 2.0 * clickspermeters, FORWARD, 127);
+	}
+
+
   void autonFiveRight(){ //autonFiveLEft grabs the five stack, starts on left tile.
 	SensorValue[rightIEM]=0;
 	SensorValue[leftIEM]=0;
 	strafeLeft(127, .3 * clickspermeters);
   drive( .1 * clickspermeters, FORWARD, 70);
-  wrist(-127, 1100);
-  //AArm(300 , LOWER, 60);
+  //wrist(-127, 1100);
+  ///AArm(300 , LOWER, 60);
 	wait1Msec(400);
   drive( .6 * clickspermeters, FORWARD, 80);
   wait1Msec(20);
-  StartTask(five);
-  wrist(127, 850);
-  wait1Msec(1050);
   driveBackward(100, 100);
-  aArm(2100, RAISE, 120);
-  wrist(127, 200);
+  StartTask(five);
+  //wrist(127, 600);
+  wait1Msec(900);
+  //wrist(10, 20);
+  aArm(1500, RAISE, 120);
   drive( .4 * clickspermeters, FORWARD, 70);
   wait1Msec(20);
-   while(SensorValue[WristPot1] > 200){
+  while(SensorValue[WristPot2] > 1900){
   motor[leftWrist] = -127;
   motor[rightWrist] = -127;
   }
@@ -592,7 +1038,7 @@ void autonYellow(){ //autonFiveLEft grabs the five stack, starts on left tile.
 	}
 	else if (autonR== true)
 	{
-		autonYellow();
+		autonBlock();
 	}
 
 }
@@ -626,7 +1072,7 @@ void pre_auton()
 	SensorValue[in2] = 0;
 	SensorValue[rightIEM] = 0;
 	SensorValue[leftIEM] = 0;
-//	autonomousSelection();
+	autonomousSelection();
 	// All activities that occur before the competition starts
 	// Example: clearing encoders, setting servo positions, ...
 }
@@ -640,9 +1086,8 @@ void pre_auton()
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
-task autonomous()
-{
-autonFiveLeft();
+task autonomous(){
+  autonFiveLeft();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -662,7 +1107,14 @@ task usercontrol()
 	{
 		while(1 == 1){
 		if (isrunning == false){
-
+	if(VexRT[Btn7U] == 1)
+  {
+   toggle = 1;
+	}
+	else if(VexRT[Btn7D] == 1)
+  {
+   toggle = 0;
+	}
 		StartTask(one);
 		StartTask(two);
 	  StartTask(three);
